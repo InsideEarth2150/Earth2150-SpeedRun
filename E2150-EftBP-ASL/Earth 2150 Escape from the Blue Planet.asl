@@ -18,40 +18,25 @@
 
 // IMPORTANT: If there is an issue, please report on Discord: https://discord.gg/yxtzdUZ
 
-state("Earth2150") {
-	
-	//name of the area the player is currently in
+state("Earth2150") 
+{
 	string30 areaName: 	0x63D254, 0x58, 0x0C, 0x44, 0x0C;
-	
-	//1 when in "freeroam" (able to start a mission), 0 otherwise
-	int freeroam: 	0x5D0914;
-	
-	//1 when on the mission-end stats screen and on fullscreen overlays (F1-3 buttons)
-	int overlay:	0x381454;
-	
-	//1 on mission end screens, will sometimes flicker to 1 when starting a mission
-	int missionEnd:	0x5D08D4;
-	
-	//1 when loading
+	int freeroam: 		0x5D0914;
+	int overlay:		0x381454;
+	int missionEnd:		0x5D08D4;
 	int load:		0x5DB8F0;
-	
-	//4 in (some)loads and in the menu
 	int menu:		0x345420;
-	
-	//1 in the campaign-end cutscene
 	int fmv:		0x359F54;
 }
 
-startup {
-	
-	//add settings groups
+startup 
+{
 	settings.Add("ED", true, "Eurasian Dynasty");
 	settings.Add("UCS", true, "United Civilized States");
 	settings.Add("LC", true, "Lunar Corporation");
 	
-	//add settings for each mission
-	//since mission names repeat between campaigns, we add the campaign name as the prefix to the setting
 	vars.missionsLC = new Dictionary<string, string> {
+		{"LCTutorial", "Tutorial"},
 		{"LCUral", "Ural"},
 		{"LCArctic", "Arctic"},
 		{"LCHimalaya", "Himalaya"},
@@ -79,6 +64,7 @@ startup {
     };
 	
 	vars.missionsUCS = new Dictionary<string, string> {
+		{"UCSTutorial", "Tutorial"},
 		{"UCSUral", "Ural"},
 		{"UCSArctic", "Arctic"},
 		{"UCSArctic II", "Arctic II"},
@@ -104,6 +90,7 @@ startup {
     };
 	
 	vars.missionsED = new Dictionary<string, string> {
+		{"EDTutorial", "Tutorial"},
 		{"EDUral", "Ural"},
 		{"EDArctic", "Arctic"},
 		{"EDArctic 2", "Arctic 2"},
@@ -137,46 +124,30 @@ startup {
 		settings.Add(Tag.Key, true, Tag.Value, "ED");
     };
 	
-	//variable keeping track of the last played mission
 	vars.realMission = "";
-	
-	//variable keeping track of progress in the campaign to use in lab splits
 	vars.currentProgress = 0;
-	
-	//variable keeping track of the campaign being played at the moment
 	vars.campaign = "";
-	
 	refreshRate = 30;
 }
 
 update {
 	if (current.areaName != old.areaName) {
-		//keeping track of the mission last played, since you can go to your Base mid-mission
-		//and also the value goes to null on stats screens
 		if (current.areaName != null && !current.areaName.Contains("Base")) {
 			vars.realMission = current.areaName;
 			print("realMission = " + vars.realMission);
 		}
 		
-		//Ural happens to be the first mission of every campaign so we use it to reset the progress counter
 		if (current.areaName == "Ural") {
 			vars.currentProgress = 0;
 		}
 	}
 	
-	//because in the LC campaign the mission Amazon happens twice, we need to keep track of
-	//when the player finished the first one and is on to the 2nd one
-	//so that the setting works
-	//since you have to complete The Great Lakes before you gain access to Amazon 2, we check if that mission
-	//has been completed, and if so, set the progress to 1
 	if (vars.realMission == "The Great Lakes" && vars.campaign == "LC") {
 		if (current.missionEnd == 1 && old.missionEnd == 0 && current.overlay == 1) {
 			vars.currentProgress = 1;
 		}
 	}
 	
-	//at the beginning of each campaign you gain "freeroam" after some time spent in your base
-	//the base for each campaign has a unique name, allowing us to determine which campaign is being played
 	if (current.freeroam == 1 && old.freeroam == 0) {
 		string currentBase = current.areaName;
 		switch (currentBase) {
@@ -197,19 +168,9 @@ update {
 		}
 	}
 	
-	//debug stuff
-	
-	//if (current.missionEnd != old.missionEnd) {
-	//	print(old.missionEnd + " -> " + current.missionEnd + current.areaName);
-	//}
-	
 	if (current.fmv == 1 && old.fmv == 0) {
 		print("FMV Started!");
 	}
-
-	//if (current.areaName != old.areaName) {
-	//	print(old.areaName + " -> " + current.areaName);
-	//}
 }
 
 start {
@@ -222,14 +183,12 @@ start {
 }
 
 split {
-	//regular mission splits
 	if (current.missionEnd == 1 && old.missionEnd == 0 && current.overlay == 1 || current.overlay == 1 && old.overlay == 0 && current.missionEnd == 1) {
 		if (settings[vars.campaign + vars.realMission]) {
 			return true;
 		}
 	}
 	
-	//amazon2 split
 	if (settings["LCAmazon2"]) {
 		if (vars.realMission == "Amazon" && vars.currentProgress == 1) {
 			if (current.missionEnd == 1 && old.missionEnd == 0 && current.overlay == 1) {
@@ -238,7 +197,6 @@ split {
 		}
 	}
 	
-	//ACME Lab splits
 	if (vars.realMission == "ACME-Lab" || vars.realMission == "ACME-Laboratory") {
 		if (current.freeroam == 1 && old.freeroam == 0) {
 			if (settings["ACME"]) {
@@ -247,8 +205,6 @@ split {
 		}
 	}
 	
-	//campaign end splits
-	//i really hope this just works
 	if (current.fmv == 1 && old.fmv == 0) {
 		return true;
 	}
