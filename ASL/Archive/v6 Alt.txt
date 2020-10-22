@@ -1,0 +1,145 @@
+state("Earth2150") {
+	string30 areaName : 0x63D254, 0x58, 0x0C, 0x44, 0x0C;
+	int freeroam      : 0x5D0914;
+	int overlay       : 0x381454;
+	int missionEnd    : 0x5D08D4;
+	int load          : 0x5DB8F0;
+	int menu          : 0x345420;
+	int fmv           : 0x359F54;
+}
+
+startup {
+	vars.missions = new Dictionary <string, string> {
+		{"LC-Ural", "Ural"},
+		{"LC-Arctic", "Arctic"},
+		{"LC-Himalaya", "Himalaya"},
+		{"LC-Kamchatka", "Kamchatka"},
+		{"LC-Canada", "Canada"},
+		{"LC-Baikal", "Baikal"},
+		{"LC-Amazon", "Amazon"},
+		{"LC-The Great Lakes", "The Great Lakes"},
+		{"LC-Madagascar", "Madagascar"},
+		{"LC-Australia", "Australia"},
+		{"LC-Mozambique", "Mozambique"},
+		{"LC-Rio de Janeiro", "Rio de Janeiro"},
+		{"LC-Lesotho", "Lesotho"},
+		{"LC-India", "India"},
+		{"LC-Egypt", "Egypt"},
+		{"LC-Congo", "Congo"},
+		{"LC-Peru", "Peru"},
+		{"LC-Amazon2", "Amazon 2"},
+		{"LC-Andes", "Andes"},
+		{"LC-ACME", "Split at the end of ACME Lab missions"},
+		{"USC-Ural", "Ural"},
+		{"USC-Arctic", "Arctic"},
+		{"USC-Arctic II", "Arctic II"},
+		{"USC-Baikal", "Baikal"},
+		{"USC-Alaska", "Alaska"},
+		{"USC-Japan", "Japan"},
+		{"USC-Japan II", "Japan II"},
+		{"USC-Kurtshatov FZ", "Kurtshatov FZ"},
+		{"USC-Great Lakes", "Great Lakes"},
+		{"USC-New York", "New York"},
+		{"USC-India", "India"},
+		{"USC-Madagascar", "Madagascar"},
+		{"USC-Australia", "Australia"},
+		{"USC-Egypt", "Egypt"},
+		{"USC-Mozambique", "Mozambique"},
+		{"USC-Andes", "Andes"},
+		{"USC-Columbia", "Columbia"},
+		{"USC-Stanford Lab", "Split at the end of Stanford Lab missions"},
+		{"ED-Ural", "Ural"},
+		{"ED-Arctic", "Arctic"},
+		{"ED-Arctic 2", "Arctic 2"},
+		{"ED-Himalaya", "Himalaya"},
+		{"ED-Kamchatka", "Kamchatka"},
+		{"ED-Leviathan", "Leviathan"},
+		{"ED-Alaska", "Alaska"},
+		{"ED-Japan", "Japan"},
+		{"ED-Canada", "Canada"},
+		{"ED-Amazon -N-", "Amazon -N-"},
+		{"ED-Great Lakes", "Great Lakes"},
+		{"ED-New York", "New York"},
+		{"ED-Indonesia", "Indonesia"},
+		{"ED-Area 51", "Area 51"},
+		{"ED-Madagascar", "Madagascar"},
+		{"ED-India", "India"},
+		{"ED-Australia", "Australia"},
+		{"ED-Panama", "Panama"},
+		{"ED-Mozambique", "Mozambique"},
+		{"ED-Red Rock", "Red Rock"},
+		{"ED-New Zealand", "New Zealand"},
+		{"ED-Egypt", "Egypt"},
+		{"ED-Congo", "Congo"},
+		{"ED-Lesotho", "Lesotho"},
+		{"ED-Algeria", "Algeria"},
+		{"ED-Andes", "Andes"},
+		{"ED-Columbia", "Columbia"}
+	};
+
+	settings.Add("LC", true, "Lunar Corporation");
+	settings.Add("USC", true, "United Civilized States");
+	settings.Add("ED", true, "Eurasian Dynasty");
+	foreach (var sett in vars.missions) settings.Add(sett.Key, true, sett.Value, sett.Key.Split('-')[0]);
+
+	vars.realMission = "";
+	vars.currentProgress = 0;
+	vars.campaign = "";
+	refreshRate = 30;
+}
+
+update {
+	if (current.areaName != null && current.areaName != old.areaName && !current.areaName.Contains("Base")) {
+		vars.realMission = current.areaName;
+		//print("realMission = " + vars.realMission);
+	}
+
+	if (current.areaName == "Ural") vars.currentProgress = 0;
+
+	if (vars.realMission == "The Great Lakes" && vars.campaign == "LC" && current.missionEnd == 1 && old.missionEnd == 0 && current.overlay == 1) vars.currentProgress = 1;
+
+	if (current.freeroam == 1 && old.freeroam == 0) {
+		string currentBase = current.areaName;
+		switch (currentBase) {
+			case "LC Base":
+				vars.campaign = "LC";
+				//print(">>>>> Campaign set to: " + vars.campaign);
+				break;
+
+			case "ED Base":
+				vars.campaign = "ED";
+				//print(">>>>> Campaign set to: " + vars.campaign);
+				break;
+
+			case "USC Base":
+				vars.campaign = "USC";
+				//print(">>>>> Campaign set to: " + vars.campaign);
+				break;
+		}
+	}
+
+	//if (current.fmv == 1 && old.fmv == 0) print("FMV Started!");
+	//if (current.areaName != old.areaName) print(">>>>> areaName changed from " + old.areaName + " to " + current.areaName);
+}
+
+start {
+	if (current.menu == 0 && old.menu == 4) {
+		vars.realMission = "";
+		vars.campaign = "";
+		vars.currentProgress = 0;
+		return true;
+	}
+}
+
+split {
+	return
+		current.missionEnd == 1 && old.missionEnd == 0 && current.overlay == 1 ||
+		current.missionEnd == 1 && old.missionEnd == 0 && current.overlay == 1 && vars.realMission == "Amazon" && vars.currentProgress == 1 && settings["LC-Amazon2"] ||
+		current.missionEnd == 1 && current.overlay == 1 && old.overlay == 0 && settings[vars.campaign + "-" + vars.realMission] ||
+		current.freeroam == 1 && old.freeroam == 0 && (vars.realMission == "ACME-Lab" || vars.realMission == "ACME-Laboratory") && settings["LC-ACME"] ||
+		current.fmv == 1 && old.fmv == 0;
+}
+
+isLoading {
+	return current.load == 1 || current.menu == 4;
+} 
