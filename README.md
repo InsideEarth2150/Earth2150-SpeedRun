@@ -1,4 +1,4 @@
-# Earth Universe - Autosplitters
+# Earth 2150 - Autosplitters
 ## Information
 An autosplitter repository for the Earth 2150 Games.
 
