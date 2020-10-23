@@ -2,6 +2,8 @@
 ## Information
 An autosplitter repository for the Earth 2150 Games.
 
+<a href="https://discord.gg/yxtzdUZ"><img alt="Discord" src="https://img.shields.io/discord/572336961143177216?label=Discor?color=Green&label=Discord&style=flat"/></a>
+
 ## Links
 * Leaderboards: [speedrun.com/Earth2150](https://www.speedrun.com/earth_2150_escape_from_the_blue_planet)
 * Discord: [discord.gg/yxtzdUZ](https://discord.gg/yxtzdUZ)
