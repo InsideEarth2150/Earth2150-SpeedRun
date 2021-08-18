@@ -10,5 +10,5 @@ An autosplitter repository for the Earth 2150 Games.
 * Earth 2150: [store.steampowered.com/app/253880](https://store.steampowered.com/app/253880) (£4.99)
 
 
-### Contact Animal™#0001 on Discord if there are issues!
+### Contact Animal™#5713 on Discord if there are issues!
 <a href="https://discord.gg/yxtzdUZ"><img alt="Discord" src="https://img.shields.io/discord/572336961143177216?color=Green&label=Discord&style=flat"/></a>
